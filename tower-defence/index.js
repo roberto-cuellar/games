@@ -310,6 +310,36 @@ let bombActive = false;
 let metraActive = false;
 let mousePosition = { x: 0, y: 0 };
 
+
+// Watch for key down to activate shot by shot, rafaga, metra
+window.addEventListener('keydown', function(e) {
+    let radioInput;
+
+    switch (e.key) {
+        case 'r':
+            radioInput = document.querySelector('#rafaga');
+            amoSelection = 'rafaga';
+            break;
+        case 'm':
+            radioInput = document.querySelector('#metra');
+            amoSelection = 'metra';
+            break;
+        case 't':
+            radioInput = document.querySelector('#tiroTiro');
+            amoSelection = 'tiroTiro';
+            break;
+        case 'b':
+            bombAction();
+            break;
+        default:
+            return; // Salir si no es una de las teclas que nos interesan
+    }
+
+    // Marcar el radio input como checked
+    if (radioInput) radioInput.checked = true;
+});
+
+
 // Watch for mouse position
 window.addEventListener('mousemove', function(e) {
     mousePosition.x = e.clientX;
