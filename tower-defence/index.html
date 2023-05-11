@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roberto Cuellar - Tower Defence</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+    </style>
+    <div
+      style="
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        color: aliceblue;
+        font-family: sans-serif;
+        z-index: 1000;
+      "
+    >
+      <p>Score: <span id="score"></span></p>
+      <div id="amo-options">
+        <input
+          type="radio"
+          id="tiroTiro"
+          name="amoType"
+          value="tiroTiro"
+          checked
+        />
+        <label for="tiroTiro">Tiro a Tiro</label><br />
+
+        <input type="radio" id="rafaga" name="amoType" value="rafaga" />
+        <label for="rafaga">Rafaga</label><br />
+
+        <input type="radio" id="metra" name="amoType" value="metra" />
+        <label for="metra">Metra</label><br />
+
+        <!-- <input type="radio" id="bomb" name="amoType" value="bomb" />
+        <label for="bomb">Bomb</label><br /> -->
+      </div>
+      <div >
+        <button onclick="bombAction()">Bomb</button>
+      </div>
+    </div>
+    <div id="game-over-container">
+      <p id="game-over"><span>GAME</span> <span>OVER</span></p>
+      <p id="play-again" style="font-family: sans-serif" onclick="restart()">
+        PLAY AGAIN?
+      </p>
+    </div>
+    <canvas></canvas>
+
+    <script src="index.js"></script>
+  </body>
+</html>
