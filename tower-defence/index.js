@@ -10,9 +10,13 @@ const audioimpactInvader = new Audio("impact.mp3");
 const audioImpactPlayer = new Audio("explosion.mp3");
 const audioBomb = new Audio("bomb.mp3");
 const audioDoom = new Audio("doom.mp3");
+const audioLaserGun = new Audio("laser_gun.mp3");
+const audioExplotionBass = new Audio("explotion_bass.mp3");
 audioShootPlayer.volume = 0.1;
 audioimpactInvader.volume = 0.1;
-audioImpactPlayer.volume = 0.1;
+audioExplotionBass.volume = 0.1;
+audioImpactPlayer.volume = 0.05;
+audioLaserGun.volume = 0.3;
 audioBomb.volume = 0.1;
 audioDoom.volume = 0.1;
 audioDoom.play();
@@ -202,6 +206,9 @@ let game = {
 let particles = [];
 let score = 0;
 let timeScale = 1;
+// Params for laser configuration
+let lineWidth = 2;
+let shadowBlur = 10;
   
 // Amo options container
 const amoOptionsEl = document.getElementById("amo-options");
@@ -212,6 +219,10 @@ let metraActive = false;
 let mousePosition = { x: 0, y: 0 };
 
 
+// Vector dot product
+function dotProduct(x1, y1, x2, y2) {
+    return x1 * x2 + y1 * y2;
+}
 
 // Animation loop 
 function animate() {
@@ -221,6 +232,39 @@ function animate() {
     c.fillStyle = "black";
     c.fillStyle = 'rgba(0, 0, 0, .1)';
     c.fillRect(0, 0, canvas.width, canvas.height);
+
+    if(amoSelection === 'laser'){
+        c.save();
+        // Configura el estilo de la línea y el efecto de resplandor
+        c.strokeStyle = 'white';  // Color de la línea
+        lineWidth += 0.01;
+        shadowBlur += 0.02;
+        c.lineWidth = lineWidth;          // Grosor de la línea
+        c.shadowColor = 'blue';   // Color del resplandor
+        c.shadowBlur = shadowBlur;        // Cantidad de resplandor
+
+        // Dibuja la línea desde el centro del canvas hasta la posición del ratón
+        c.beginPath();
+        c.moveTo(canvas.width / 2, canvas.height / 2);
+
+        // Calculate end point
+        let x, y;
+        let slope = (mousePosition.y - canvas.height / 2) / (mousePosition.x - canvas.width / 2);
+        if (mousePosition.x > canvas.width / 2) {
+            x = canvas.width;
+            y = slope * (x - canvas.width / 2) + canvas.height / 2;
+        } else {
+            x = 0;
+            y = slope * (x - canvas.width / 2) + canvas.height / 2;
+        }
+
+        // c.lineTo(mousePosition.x, mousePosition.y);
+        c.lineTo(x, y);
+        c.stroke();
+        c.restore();
+    }
+
+
     player.draw();
 
     // draw particles
@@ -282,38 +326,53 @@ function animate() {
                 enemies.splice(enemyIndex, 1);
             }, 0);
         }else{
-            // Colission detection
-            const colission = calcColition(player.position.x,player.position.y,player.radius,enemyItem.position.x,enemyItem.position.y,enemyItem.radius);
-            if(colission){
-                game.active = false;
-                gameOverContainer.style.visibility = 'visible';
-                if (audioImpactPlayer.paused) {
-                    audioImpactPlayer.play();
-                  } else {
-                    audioImpactPlayer.currentTime = 0;
-                  } 
+            
+            if(amoSelection === 'laser'){
+                let dist = pointLineDistance(enemyItem.position.x, enemyItem.position.y, canvas.width / 2, canvas.height / 2, mousePosition.x, mousePosition.y);
+                 // Laser vector
+                let laserVectorX = mousePosition.x - canvas.width / 2;
+                let laserVectorY = mousePosition.y - canvas.height / 2;
+                let enemyVectorX = enemyItem.position.x - canvas.width / 2;
+                let enemyVectorY = enemyItem.position.y - canvas.height / 2;
+                if (dotProduct(laserVectorX, laserVectorY, enemyVectorX, enemyVectorY) > 0) {
+                    if (dist <= enemyItem.radius) {
+                        setTimeout(() => {
+                            enemies.splice(enemyIndex, 1);  
+                            createParticles(enemyItem,'blue');
+                            score += 100;
+                            if (audioExplotionBass.paused) {
+                                audioExplotionBass.play();
+                              } else {
+                                audioExplotionBass.currentTime = 0;
+                              }                   
+                        }, 0);
+                        // Laser hits the enemy
+                    }else{
+                        enemyItem.update()
+                    }
+                }else{
+                    enemyItem.update()
+                }
             }else{
-                enemyItem.update()
+                // Colission detection
+                const colission = calcColition(player.position.x,player.position.y,player.radius,enemyItem.position.x,enemyItem.position.y,enemyItem.radius);
+                if(colission){
+                    game.active = false;
+                    gameOverContainer.style.visibility = 'visible';
+                    if (audioImpactPlayer.paused) {
+                        audioImpactPlayer.play();
+                    } else {
+                        audioImpactPlayer.currentTime = 0;
+                    } 
+                }else{
+                    enemyItem.update()
+                }
             }
         }
 
     });
     
-    if(amoSelection === 'laser'){
-        c.save();
-        // Configura el estilo de la línea y el efecto de resplandor
-        c.strokeStyle = 'white';  // Color de la línea
-        c.lineWidth = 2;          // Grosor de la línea
-        c.shadowColor = 'blue';   // Color del resplandor
-        c.shadowBlur = 10;        // Cantidad de resplandor
-
-        // Dibuja la línea desde el centro del canvas hasta la posición del ratón
-        c.beginPath();
-        c.moveTo(canvas.width / 2, canvas.height / 2);
-        c.lineTo(mousePosition.x, mousePosition.y);
-        c.stroke();
-        c.restore();
-    }
+    
 
 
     if(frames % 100 === 0){
@@ -326,7 +385,7 @@ function animate() {
 }
 animate();
 
-
+let laserActive = false;
 
 // Watch for key down to activate shot by shot, rafaga, metra
 window.addEventListener('keydown', function(e) {
@@ -350,8 +409,7 @@ window.addEventListener('keydown', function(e) {
             break;
 
         case 'l':
-            radioInput = document.querySelector('#laser');
-            amoSelection = 'laser';
+            initLaser();
             break;
 
         default:
@@ -363,13 +421,41 @@ window.addEventListener('keydown', function(e) {
 });
 
 
+function initLaser() {
+    if(!laserActive){
+        laserActive = true;
+        lineWidth = 2;
+        shadowBlur = 10;
+        setTimeout(() => {
+            laserActive = false;
+            radioInput = document.querySelector('#rafaga');
+            radioInput.checked = true;
+            amoSelection = 'rafaga';
+        }, 8000);
+        radioInput = document.querySelector('#laser');
+        amoSelection = 'laser';
+        if (audioLaserGun.paused) {
+            audioLaserGun.play();
+          } else {
+            audioLaserGun.currentTime = 0;
+          }  
+    }
+}
+
+// Function to calculate distance from point to line
+function pointLineDistance(x, y, x1, y1, x2, y2) {
+    let A = y2 - y1;
+    let B = x1 - x2;
+    let C = x2*y1 - x1*y2;
+    return Math.abs(A*x + B*y + C) / Math.sqrt(A*A + B*B);
+}
+
+
+
 // Watch for mouse position
 window.addEventListener('mousemove', function(e) {
     mousePosition.x = e.clientX;
     mousePosition.y = e.clientY;
-    if(amoSelection === 'laser'){
-        console.log('Laser active');
-    }
 });
 
 
@@ -401,6 +487,12 @@ window.addEventListener('click', (event)=>{
 
     if(amoSelection === 'tiroTiro'){
         playerShot(unitDirections,event);
+    }
+
+    if(amoSelection === 'laser'){
+        console.log('Init laser');
+        
+        initLaser();
     }
 
 
