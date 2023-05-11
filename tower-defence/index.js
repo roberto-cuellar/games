@@ -203,6 +203,15 @@ let particles = [];
 let score = 0;
 let timeScale = 1;
   
+// Amo options container
+const amoOptionsEl = document.getElementById("amo-options");
+let amoSelection = 'tiroTiro';
+let rafagueActive = false;
+let bombActive = false;
+let metraActive = false;
+let mousePosition = { x: 0, y: 0 };
+
+
 
 // Animation loop 
 function animate() {
@@ -290,6 +299,22 @@ function animate() {
 
     });
     
+    if(amoSelection === 'laser'){
+        c.save();
+        // Configura el estilo de la línea y el efecto de resplandor
+        c.strokeStyle = 'white';  // Color de la línea
+        c.lineWidth = 2;          // Grosor de la línea
+        c.shadowColor = 'blue';   // Color del resplandor
+        c.shadowBlur = 10;        // Cantidad de resplandor
+
+        // Dibuja la línea desde el centro del canvas hasta la posición del ratón
+        c.beginPath();
+        c.moveTo(canvas.width / 2, canvas.height / 2);
+        c.lineTo(mousePosition.x, mousePosition.y);
+        c.stroke();
+        c.restore();
+    }
+
 
     if(frames % 100 === 0){
         enemies.push(
@@ -301,14 +326,6 @@ function animate() {
 }
 animate();
 
-
-// Amo options container
-const amoOptionsEl = document.getElementById("amo-options");
-let amoSelection = 'tiroTiro';
-let rafagueActive = false;
-let bombActive = false;
-let metraActive = false;
-let mousePosition = { x: 0, y: 0 };
 
 
 // Watch for key down to activate shot by shot, rafaga, metra
@@ -331,6 +348,12 @@ window.addEventListener('keydown', function(e) {
         case 'b':
             bombAction();
             break;
+
+        case 'l':
+            radioInput = document.querySelector('#laser');
+            amoSelection = 'laser';
+            break;
+
         default:
             return; // Salir si no es una de las teclas que nos interesan
     }
@@ -344,6 +367,9 @@ window.addEventListener('keydown', function(e) {
 window.addEventListener('mousemove', function(e) {
     mousePosition.x = e.clientX;
     mousePosition.y = e.clientY;
+    if(amoSelection === 'laser'){
+        console.log('Laser active');
+    }
 });
 
 
@@ -594,6 +620,9 @@ function restart() {
     rafagueActive = false;
     metraActive = false;
     bombActive = false;
+    const radioInput = document.querySelector('#tiroTiro');
+    radioInput.checked = true;
+    amoSelection = 'tiroTiro'
     animate()
   }
   
